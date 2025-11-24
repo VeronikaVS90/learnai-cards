@@ -5,7 +5,7 @@ import { SESSION_COOKIE_NAME } from "@/server/auth/constants";
 import { clearSessionCookie, deleteSession } from "@/server/auth/session";
 
 export async function POST() {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
 
   if (token) {

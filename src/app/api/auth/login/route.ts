@@ -39,7 +39,7 @@ export async function POST(request: Request) {
 
   const response = NextResponse.json({ user: toPublicUser(user) });
 
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const existingToken = cookieStore.get(SESSION_COOKIE_NAME)?.value;
   if (existingToken) {
     await deleteSession(existingToken).catch(() => {});
