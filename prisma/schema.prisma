@@ -1,0 +1,85 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String     @id @default(cuid())
+  email        String     @unique
+  passwordHash String
+  name         String?
+  createdAt    DateTime   @default(now())
+  decks        Deck[]
+  cards        Card[]     @relation("UserCards")
+  sessions     Session[]
+  reviews      ReviewLog[]
+}
+
+model Deck {
+  id          String    @id @default(cuid())
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+  title       String
+  description String?
+  isArchived  Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  cards       Card[]
+  reviews     ReviewLog[]
+
+  @@index([userId, isArchived])
+}
+
+model Card {
+  id          String    @id @default(cuid())
+  deck        Deck      @relation(fields: [deckId], references: [id], onDelete: Cascade)
+  deckId      String
+  owner       User      @relation("UserCards", fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+  question    String
+  answer      String
+  dueAt       DateTime  @default(now())
+  interval    Int       @default(1)
+  easeFactor  Float     @default(2.5)
+  repetition  Int       @default(0)
+  isSuspended Boolean   @default(false)
+  isArchived  Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  reviews     ReviewLog[]
+
+  @@index([deckId, dueAt])
+  @@index([userId, dueAt])
+}
+
+model ReviewLog {
+  id         String   @id @default(cuid())
+  card       Card     @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  cardId     String
+  deck       Deck     @relation(fields: [deckId], references: [id], onDelete: Cascade)
+  deckId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     String
+  grade      Int
+  interval   Int
+  easeFactor Float
+  repetition Int
+  reviewedAt DateTime @default(now())
+
+  @@index([userId, reviewedAt])
+  @@index([deckId, reviewedAt])
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
